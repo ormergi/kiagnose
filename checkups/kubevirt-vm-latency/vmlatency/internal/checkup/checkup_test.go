@@ -128,6 +128,12 @@ func newTestReadyVmi() *kvcorev1.VirtualMachineInstance {
 				Status: k8scorev1.ConditionTrue,
 			},
 		},
+		Interfaces: []kvcorev1.VirtualMachineInstanceNetworkInterface{
+			{
+				Name: "net0",
+				IP:   "10.0.0.1",
+			},
+		},
 	}}
 }
 

@@ -119,6 +119,14 @@ func (c *checkup) Setup(ctx context.Context) error {
 		return fmt.Errorf("%s: %v", errMessagePrefix, err)
 	}
 
+	if c.targetVM, err = vmi.WaitForStatusIPAddress(waitCtx, c.client, c.namespace, targetVmi.Name); err != nil {
+		return fmt.Errorf("%s: %v", errMessagePrefix, err)
+	}
+
+	if c.sourceVM, err = vmi.WaitForStatusIPAddress(waitCtx, c.client, c.namespace, sourceVmi.Name); err != nil {
+		return fmt.Errorf("%s: %v", errMessagePrefix, err)
+	}
+
 	return nil
 }
 

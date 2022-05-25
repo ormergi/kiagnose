@@ -219,6 +219,12 @@ func (c *fakeClient) CreateVirtualMachineInstance(
 			Status: k8scorev1.ConditionTrue,
 		},
 	)
+	vmi.Status.Interfaces = append(vmi.Status.Interfaces,
+		kvcorev1.VirtualMachineInstanceNetworkInterface{
+			Name: "net0",
+			IP:   "10.0.0.1",
+		},
+	)
 	c.vmiTracker[vmiKey(namespace, vmi.Name)] = vmi
 	return vmi, nil
 }
