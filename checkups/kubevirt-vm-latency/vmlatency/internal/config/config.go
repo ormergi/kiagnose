@@ -22,8 +22,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"math"
-	"strconv"
+	"time"
 )
 
 const (
@@ -42,8 +41,8 @@ type CheckupParameters struct {
 	NetworkAttachmentDefinitionNamespace string
 	TargetNodeName                       string
 	SourceNodeName                       string
-	SampleDurationSeconds                int
-	DesiredMaxLatencyMilliseconds        int
+	SampleDurationSeconds                time.Duration
+	DesiredMaxLatencyMilliseconds        time.Duration
 }
 
 type Config struct {
@@ -65,8 +64,8 @@ var (
 )
 
 const (
-	DefaultSampleDurationSeconds         = 5
-	DefaultDesiredMaxLatencyMilliseconds = math.MaxInt
+	DefaultSampleDuration    = time.Second * 5
+	DefaultDesiredMaxLatency = time.Minute * 1
 )
 
 func New(env map[string]string) (Config, error) {
@@ -107,16 +106,18 @@ func New(env map[string]string) (Config, error) {
 	}
 
 	var err error
-	sampleDuration := DefaultSampleDurationSeconds
+	sampleDuration := DefaultSampleDuration
 	if value, exists := env[SampleDurationSecondsEnvVarName]; exists {
-		if sampleDuration, err = strconv.Atoi(value); err != nil {
+		const secondsUnit = "s"
+		if sampleDuration, err = time.ParseDuration(value + secondsUnit); err != nil {
 			return Config{}, fmt.Errorf("%q environment variable is invalid: %v", SampleDurationSecondsEnvVarName, err)
 		}
 	}
 
-	desiredMaxLatency := DefaultDesiredMaxLatencyMilliseconds
+	desiredMaxLatency := DefaultDesiredMaxLatency
 	if value, exists := env[DesiredMaxLatencyMillisecondsEnvVarName]; exists {
-		if desiredMaxLatency, err = strconv.Atoi(value); err != nil {
+		const millisecondsUnit = "ms"
+		if desiredMaxLatency, err = time.ParseDuration(value + millisecondsUnit); err != nil {
 			return Config{}, fmt.Errorf("%q environment variable is invalid: %v", DesiredMaxLatencyMillisecondsEnvVarName, err)
 		}
 	}

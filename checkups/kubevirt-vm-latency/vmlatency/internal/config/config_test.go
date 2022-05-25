@@ -21,8 +21,8 @@ package config_test
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 
@@ -37,11 +37,11 @@ type configCreateTestCases struct {
 
 func TestCreateConfigFromEnvShould(t *testing.T) {
 	const (
-		testNamespace                     = "default"
-		testResultConfigMapName           = "result"
-		testNetAttachDefName              = "blue-net"
-		testDesiredMaxLatencyMilliseconds = 100
-		testSampleDurationSeconds         = 60
+		testNamespace           = "default"
+		testResultConfigMapName = "result"
+		testNetAttachDefName    = "blue-net"
+		testDesiredMaxLatency   = time.Millisecond * 100
+		testSampleDuration      = time.Minute * 1
 	)
 
 	testCases := []configCreateTestCases{
@@ -52,14 +52,14 @@ func TestCreateConfigFromEnvShould(t *testing.T) {
 				config.ResultsConfigMapNamespaceEnvVarName:     testNamespace,
 				config.NetworkNameEnvVarName:                   testNetAttachDefName,
 				config.NetworkNamespaceEnvVarName:              testNamespace,
-				config.DesiredMaxLatencyMillisecondsEnvVarName: fmt.Sprintf("%d", testDesiredMaxLatencyMilliseconds),
+				config.DesiredMaxLatencyMillisecondsEnvVarName: fmt.Sprintf("%d", testDesiredMaxLatency.Milliseconds()),
 			},
 			config.Config{
 				CheckupParameters: config.CheckupParameters{
-					SampleDurationSeconds:                config.DefaultSampleDurationSeconds,
+					SampleDurationSeconds:                config.DefaultSampleDuration,
 					NetworkAttachmentDefinitionName:      testNetAttachDefName,
 					NetworkAttachmentDefinitionNamespace: testNamespace,
-					DesiredMaxLatencyMilliseconds:        testDesiredMaxLatencyMilliseconds,
+					DesiredMaxLatencyMilliseconds:        testDesiredMaxLatency,
 				},
 				ResultsConfigMapName:      testResultConfigMapName,
 				ResultsConfigMapNamespace: testNamespace,
@@ -72,14 +72,14 @@ func TestCreateConfigFromEnvShould(t *testing.T) {
 				config.ResultsConfigMapNamespaceEnvVarName: testNamespace,
 				config.NetworkNameEnvVarName:               testNetAttachDefName,
 				config.NetworkNamespaceEnvVarName:          testNamespace,
-				config.SampleDurationSecondsEnvVarName:     fmt.Sprintf("%d", testSampleDurationSeconds),
+				config.SampleDurationSecondsEnvVarName:     fmt.Sprintf("%.0f", testSampleDuration.Seconds()),
 			},
 			config.Config{
 				CheckupParameters: config.CheckupParameters{
-					DesiredMaxLatencyMilliseconds:        config.DefaultDesiredMaxLatencyMilliseconds,
+					DesiredMaxLatencyMilliseconds:        config.DefaultDesiredMaxLatency,
 					NetworkAttachmentDefinitionName:      testNetAttachDefName,
 					NetworkAttachmentDefinitionNamespace: testNamespace,
-					SampleDurationSeconds:                testSampleDurationSeconds,
+					SampleDurationSeconds:                testSampleDuration,
 				},
 				ResultsConfigMapName:      testResultConfigMapName,
 				ResultsConfigMapNamespace: testNamespace,
@@ -202,9 +202,8 @@ func TestCreateConfigFromEnvShouldFailWhen(t *testing.T) {
 func TestCreateConfigShouldFailWhenIntegerEnvVarsAreInvalid(t *testing.T) {
 	testCases := []configCreateFallingTestCases{
 		{
-			"sample duration is not valid integer",
-			strconv.ErrSyntax,
-			map[string]string{
+			description: "sample duration not valid integer",
+			env: map[string]string{
 				config.ResultsConfigMapNameEnvVarName:      "results",
 				config.ResultsConfigMapNamespaceEnvVarName: "default",
 				config.NetworkNameEnvVarName:               "blue-net",
@@ -213,9 +212,8 @@ func TestCreateConfigShouldFailWhenIntegerEnvVarsAreInvalid(t *testing.T) {
 			},
 		},
 		{
-			"desired max latency is too big",
-			strconv.ErrRange,
-			map[string]string{
+			description: "desired max latency is invalid",
+			env: map[string]string{
 				config.ResultsConfigMapNameEnvVarName:          "results",
 				config.ResultsConfigMapNamespaceEnvVarName:     "default",
 				config.NetworkNameEnvVarName:                   "blue-net",
@@ -227,7 +225,7 @@ func TestCreateConfigShouldFailWhenIntegerEnvVarsAreInvalid(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			_, err := config.New(testCase.env)
-			assert.ErrorContains(t, err, testCase.expectedError.Error())
+			assert.Error(t, err)
 		})
 	}
 }

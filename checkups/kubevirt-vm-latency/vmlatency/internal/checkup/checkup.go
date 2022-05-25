@@ -151,8 +151,7 @@ func newLatencyCheckVmi(
 }
 
 func (c *checkup) Run() error {
-	sampleDuration := time.Duration(c.params.SampleDurationSeconds) * time.Second
-	if err := c.checker.Check(c.sourceVM, c.targetVM, sampleDuration); err != nil {
+	if err := c.checker.Check(c.sourceVM, c.targetVM, c.params.SampleDurationSeconds); err != nil {
 		return fmt.Errorf("run: %v", err)
 	}
 
