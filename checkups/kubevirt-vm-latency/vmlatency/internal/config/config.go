@@ -42,7 +42,7 @@ type CheckupParameters struct {
 	TargetNodeName                       string
 	SourceNodeName                       string
 	SampleDurationSeconds                time.Duration
-	DesiredMaxLatencyMilliseconds        time.Duration
+	DesiredMaxLatencyMilliseconds        time.Durationn
 }
 
 type Config struct {
